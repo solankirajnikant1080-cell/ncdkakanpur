@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NCD Follow-up Register</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
+body{background:#f0f4f8;color:#1a202c;padding-bottom:80px}
+.header{background:linear-gradient(135deg,#2563eb,#1e40af);color:#fff;padding:14px 20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.header h1{font-size:17px;font-weight:600}
+.header p{font-size:11px;opacity:.9;margin-top:2px}
+.nav{display:flex;background:#fff;border-bottom:1px solid #e2e8f0;overflow-x:auto;position:sticky;top:60px;z-index:99}
+.nav button{flex:1;min-width:80px;padding:11px 6px;border:none;background:none;font-size:11px;font-weight:600;color:#64748b;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+.nav button.active{color:#2563eb;border-bottom-color:#2563eb;background:#eff6ff}
+.container{padding:14px;max-width:1200px;margin:0 auto}
+.tab{display:none}.tab.active{display:block}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card h2{font-size:15px;color:#1e40af;margin-bottom:10px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:3px}
+.form-group input,.form-group select{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:#2563eb}
+.date-preview{font-size:11px;font-weight:700;color:#16a34a;margin-top:4px;padding:4px 8px;background:#f0fdf4;border-radius:6px;display:none}
+.date-preview.show{display:block}
+.date-preview.warn{color:#dc2626;background:#fef2f2}
+.btn{padding:9px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;margin:3px 3px 3px 0}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-success{background:#16a34a;color:#fff}
+.btn-danger{background:#dc2626;color:#fff}
+.btn-warning{background:#f59e0b;color:#fff}
+.btn-purple{background:#7c3aed;color:#fff}
+.btn-sm{padding:5px 10px;font-size:11px}
+.table-wrap{overflow-x:auto;margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#f1f5f9;padding:8px 6px;text-align:left;font-size:11px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap}
+td{padding:8px 6px;border-bottom:1px solid #f1f5f9}
+tr:hover{background:#f8fafc}
+.badge{padding:2px 7px;border-radius:5px;font-size:10px;font-weight:600}
+.badge-new{background:#dcfce7;color:#166534}
+.badge-old{background:#fef3c7;color:#92400e}
+.search-box{width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:8px;font-size:13px;margin-bottom:10px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.stat{background:#fff;border-radius:10px;padding:12px;border-left:4px solid #2563eb}
+.stat.green{border-left-color:#16a34a}
+.stat.orange{border-left-color:#f59e0b}
+.stat.purple{border-left-color:#7c3aed}
+.stat.red{border-left-color:#dc2626}
+.stat .num{font-size:22px;font-weight:700}
+.stat .lbl{font-size:10px;color:#64748b;margin-top:2px;text-transform:uppercase;font-weight:600}
+.empty{text-align:center;padding:30px;color:#94a3b8;font-size:13px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:11px 22px;border-radius:8px;font-size:13px;z-index:9999;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1;bottom:30px}
+.toast.success{background:#16a34a}
+.toast.error{background:#dc2626}
+.summary-table th,.summary-table td{text-align:center}
+.summary-table th:first-child,.summary-table td:first-child{text-align:left;font-weight:600}
+.header-group{background:#dbeafe;color:#1e40af}
+.header-sub{background:#eff6ff;color:#1e40af;font-size:10px}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:18px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-box h3{font-size:16px;margin-bottom:12px;color:#1e40af}
+.check-row{padding:10px;border-bottom:1px solid #f1f5f9;font-size:13px}
+.check-row.warn{background:#fef3c7;color:#92400e;font-weight:600}
+.check-row.ok{color:#166534}
+.hint{font-size:11px;color:#64748b;margin-top:6px;padding:8px;background:#f8fafc;border-radius:6px}
+.side-tables{display:flex;gap:20px;flex-wrap:wrap;margin-top:18px;justify-content:center;}
+.side-tables table{width:auto;min-width:220px;border:1px solid #cbd5e1;border-collapse:collapse;font-size:13px;}
+.side-tables td{padding:9px 14px;border-bottom:1px solid #e2e8f0;text-align:left;}
+.side-tables td.val{text-align:center;font-weight:700;color:#1e293b;}
+.side-tables tr.highlight{background:#fef3c7;}
+.side-tables tr.highlight td{color:#92400e;font-weight:700;}
+.side-tables tr:last-child td{border-bottom:none;}
+@media(max-width:600px){.header h1{font-size:14px}.nav button{font-size:10px;padding:9px 4px}.container{padding:8px}.card{padding:10px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏥 NCD Follow-up Register</h1>
+  <p>Patient Master + Visit Entry + Auto Summary</p>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showTab('dashboard',event)">📊 Dashboard</button>
+  <button onclick="showTab('patients',event)">👥 Patients</button>
+  <button onclick="showTab('visits',event)">🩺 Visits</button>
+  <button onclick="showTab('reports',event)">📈 Reports</button>
+  <button onclick="showTab('checker',event)">🔍 Checker</button>
+  <button onclick="showTab('settings',event)">⚙️ Settings</button>
+</div>
+
+<div class="container">
+
+<div id="tab-dashboard" class="tab active">
+  <div class="stat-grid" id="statGrid"></div>
+  <div class="card"><h2>📅 આ મહિનાનો Summary</h2><div id="dashSummary"></div></div>
+  <div class="card"><h2>🔔 તાજેતરના Visits (5)</h2><div id="recentVisits"></div></div>
+</div>
+
+<div id="tab-patients" class="tab">
+  <div class="card">
+    <h2>➕ નવો દર્દી ઉમેરો</h2>
+    <form id="patientForm" onsubmit="addPatient(event)">
+      <div class="form-grid">
+        <div class="form-group"><label>Patient ID *</label><input type="text" id="pId" required></div>
+        <div class="form-group"><label>Patient Name *</label><input type="text" id="pName" required placeholder="પૂરું નામ"></div>
+        <div class="form-group"><label>New/Old *</label><select id="pStatus"><option>New</option><option selected>Old</option></select></div>
+        <div class="form-group"><label>Age *</label><input type="number" id="pAge" required min="0" max="120"></div>
+        <div class="form-group"><label>Sex *</label><select id="pSex"><option value="M">Male (M)</option><option value="F">Female (F)</option></select></div>
+        <div class="form-group"><label>NCD Disease *</label><select id="pDisease"><option>HTN</option><option>DM</option><option>Both</option></select></div>
+        <div class="form-group" style="grid-column:span 2">
+          <label>Treatment Start Date * (DD-MM-YYYY)</label>
+          <input type="text" id="pDate" required placeholder="DD-MM-YYYY" maxlength="10" inputmode="numeric">
+          <div class="date-preview" id="pDatePreview"></div>
+        </div>
+      </div>
+      <div style="margin-top:10px"><button type="submit" class="btn btn-primary">💾 Save Patient</button><button type="button" class="btn btn-warning" onclick="resetPatientForm()">🔄 Clear</button></div>
+    </form>
+  </div>
+  <div class="card">
+    <h2>👥 Patient List (<span id="patientCount">0</span>)</h2>
+    <input type="text" class="search-box" id="patientSearch" placeholder="🔍 નામ, ID, disease થી શોધો..." oninput="renderPatients()">
+    <div class="table-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Status</th><th>Age</th><th>Sex</th><th>Disease</th><th>Date</th><th>Action</th></tr></thead><tbody id="patientTbody"></tbody></table></div>
+  </div>
+</div>
+
+<div id="tab-visits" class="tab">
+  <div class="card">
+    <h2>➕ Follow-up Visit ઉમેરો</h2>
+    <form id="visitForm" onsubmit="addVisit(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Visit Date * (DD-MM-YYYY)</label>
+          <input type="text" id="vDate" required placeholder="DD-MM-YYYY" maxlength="10" inputmode="numeric">
+          <div class="date-preview" id="vDatePreview"></div>
+        </div>
+        <div class="form-group"><label>Patient ID *</label><input type="text" id="vPid" required list="patientIds" placeholder="Patient ID"><datalist id="patientIds"></datalist></div>
+        <div class="form-group" style="grid-column:span 2"><label>Patient Name (auto)</label><input type="text" id="vName" readonly style="background:#f8fafc"></div>
+      </div>
+      <div style="margin-top:10px"><button type="submit" class="btn btn-success">💾 Save Visit</button></div>
+      <p class="hint">ℹ️ Follow-up visit automatic "Old" ગણાશે (જો patient આ મહિના પહેલા register થયો હોય તો)</p>
+    </form>
+  </div>
+  <div class="card">
+    <h2>🩺 Visit List (<span id="visitCount">0</span>)</h2>
+    <input type="text" class="search-box" id="visitSearch" placeholder="🔍 Patient ID/Name થી શોધો..." oninput="renderVisits()">
+    <div class="table-wrap"><table><thead><tr><th>ID</th><th>Visit Date</th><th>Patient ID</th><th>Patient Name</th><th>Disease</th><th>Status</th><th>Action</th></tr></thead><tbody id="visitTbody"></tbody></table></div>
+  </div>
+</div>
+
+<div id="tab-reports" class="tab">
+  <div class="card">
+    <h2>📈 Monthly Summary Report</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+      <label style="font-size:12px;font-weight:600">Month:</label>
+      <select id="rMonth" onchange="renderReport()" style="padding:8px;border-radius:8px;border:1px solid #cbd5e1"></select>
+      <label style="font-size:12px;font-weight:600">Year:</label>
+      <input type="number" id="rYear" value="2026" min="2020" max="2100" oninput="renderReport()" style="width:90px;padding:8px;border-radius:8px;border:1px solid #cbd5e1">
+      <button class="btn btn-primary btn-sm" onclick="renderReport()">🔄 Refresh</button>
+      <button class="btn btn-success btn-sm" onclick="exportCSV()">📥 Excel Download</button>
+      <button class="btn btn-warning btn-sm" onclick="window.print()">🖨️ Print</button>
+    </div>
+    <div id="reportArea"></div>
+  </div>
+</div>
+
+<div id="tab-checker" class="tab">
+  <div class="card">
+    <h2>🔍 Mismatch Checker</h2>
+    <p style="font-size:12px;color:#64748b;margin-bottom:10px">કયા patients શંકાસ્પદ છે તે check કરો.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+      <select id="cMonth" onchange="runChecker()" style="padding:8px;border-radius:8px;border:1px solid #cbd5e1"></select>
+      <input type="number" id="cYear" value="2026" oninput="runChecker()" style="width:90px;padding:8px;border-radius:8px;border:1px solid #cbd5e1">
+      <button class="btn btn-purple btn-sm" onclick="runChecker()">🔄 Refresh</button>
+    </div>
+    <div id="checkerArea"></div>
+  </div>
+</div>
+
+<div id="tab-settings" class="tab">
+  <div class="card">
+    <h2>💾 Backup & Restore</h2>
+    <p style="font-size:12px;color:#475569;margin-bottom:10px">રોજ/અઠવાડિયે backup લેવાની ટેવ પાડો!</p>
+    <button class="btn btn-primary" onclick="exportJSON()">📥 Backup (JSON)</button>
+    <label class="btn btn-success" style="cursor:pointer;display:inline-block">📤 Restore JSON<input type="file" accept=".json" style="display:none" onchange="importJSON(event)"></label>
+    <button class="btn btn-success" onclick="exportAllCSV()">📊 Full Excel Export</button>
+    <button class="btn btn-danger" onclick="clearAll()">🗑️ બધું Delete</button>
+  </div>
+  <div class="card">
+    <h2>ℹ️ માહિતી</h2>
+    <p style="font-size:12px;line-height:1.8;color:#475569">
+      ✅ Date જાતે લખો: <b>DD-MM-YYYY</b> (દા.ત. 10-10-2026)<br>
+      ✅ નીચે તરત ખરી date દેખાશે — ખાતરી કરી લો<br>
+      ✅ New = Patient Master entry<br>
+      ✅ Old = Follow-up visit<br>
+      ⚠️ Backup લેવાનું ભૂલવું નહીં!
+    </p>
+  </div>
+  <div class="card"><h2>📊 Data Statistics</h2><div id="dataStats"></div></div>
+</div>
+
+</div>
+
+<div id="editModal" class="modal">
+  <div class="modal-box">
+    <h3 id="editTitle">Edit</h3>
+    <form id="editForm" onsubmit="saveEdit(event)">
+      <input type="hidden" id="editId">
+      <input type="hidden" id="editType">
+      <div class="form-grid">
+        <div class="form-group" id="editNameGroup"><label>Name</label><input type="text" id="editName"></div>
+        <div class="form-group" id="editStatusGroup"><label>Status</label><select id="editStatus"><option>New</option><option>Old</option></select></div>
+        <div class="form-group" id="editAgeGroup"><label>Age</label><input type="number" id="editAge"></div>
+        <div class="form-group" id="editSexGroup"><label>Sex</label><select id="editSex"><option value="M">M</option><option value="F">F</option></select></div>
+        <div class="form-group" id="editDiseaseGroup"><label>Disease</label><select id="editDisease"><option>HTN</option><option>DM</option><option>Both</option></select></div>
+        <div class="form-group" style="grid-column:span 2">
+          <label>Date (DD-MM-YYYY)</label>
+          <input type="text" id="editDate" placeholder="DD-MM-YYYY" maxlength="10" inputmode="numeric">
+          <div class="date-preview" id="editDatePreview"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <button type="submit" class="btn btn-primary">💾 Save</button>
+        <button type="button" class="btn btn-warning" onclick="closeModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== DB (Blank Setup) ====================
+const DB = {
+  patients:[], 
+  visits:[],
+  load(){
+    try{
+      // નવી કી (Key) વાપરી છે જેથી તમારો જૂનો ડેટા આમાં ન આવે
+      const p = localStorage.getItem('ncd_blank_patients');
+      const v = localStorage.getItem('ncd_blank_visits');
+      if(p && v){ 
+        this.patients = JSON.parse(p); 
+        this.visits = JSON.parse(v); 
+      } else {
+        this.patients = []; 
+        this.visits = [];
+        this.save();
+      }
+    }catch(e){ console.error(e); this.patients = []; this.visits = []; }
+  },
+  save(){
+    localStorage.setItem('ncd_blank_patients', JSON.stringify(this.patients));
+    localStorage.setItem('ncd_blank_visits', JSON.stringify(this.visits));
+  },
+  nextPid(){ return this.patients.length ? Math.max(...this.patients.map(p => parseInt(p.id)||0)) + 1 : 1; },
+  nextVid(){ return this.visits.length ? Math.max(...this.visits.map(v => v.id||0)) + 1 : 1; },
+  findPatient(id){ return this.patients.find(p => String(p.id) === String(id)); }
+};
+
+// ==================== DATE HELPERS ====================
+function parseDateDDMMYYYY(str){
+  if(!str) return null;
+  const m = str.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if(!m) return null;
+  const d = parseInt(m[1]), mo = parseInt(m[2]), y = parseInt(m[3]);
+  if(d < 1 || d > 31 || mo < 1 || mo > 12 || y < 2000 || y > 2100) return null;
+  const dt = new Date(y, mo-1, d);
+  if(dt.getDate() !== d || dt.getMonth() !== mo-1 || dt.getFullYear() !== y) return null;
+  return y + '-' + String(mo).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+}
+
+function toDDMMYYYY(isoDate){
+  if(!isoDate) return '';
+  const p = isoDate.split('-');
+  if(p.length !== 3) return '';
+  return p[2] + '-' + p[1] + '-' + p[0];
+}
+
+function todayDDMMYYYY(){
+  const t = new Date();
+  return String(t.getDate()).padStart(2,'0') + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + t.getFullYear();
+}
+
+function setupDateInput(inputId, previewId){
+  const input = document.getElementById(inputId);
+  input.addEventListener('input', function(){
+    let v = this.value.replace(/[^0-9]/g, '');
+    if(v.length >= 2 && v.length < 4) v = v.slice(0,2) + '-' + v.slice(2);
+    else if(v.length >= 4) v = v.slice(0,2) + '-' + v.slice(2,4) + '-' + v.slice(4,8);
+    this.value = v;
+    showDatePreview(inputId, previewId);
+  });
+}
+
+function showDatePreview(inputId, previewId){
+  const input = document.getElementById(inputId);
+  const el = document.getElementById(previewId);
+  if(!input.value || input.value.length < 10){ el.className = 'date-preview'; el.textContent = ''; return; }
+  const parsed = parseDateDDMMYYYY(input.value);
+  if(!parsed){
+    el.className = 'date-preview show warn';
+    el.textContent = '⚠️ ખોટી format! ઉદાહરણ: 10-10-2026';
+    return;
+  }
+  const parts = parsed.split('-');
+  const y = parseInt(parts[0]), mo = parseInt(parts[1]), d = parseInt(parts[2]);
+  const dt = new Date(y, mo-1, d);
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const mnNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  el.className = 'date-preview show';
+  el.innerHTML = '✅ ' + dayNames[dt.getDay()] + ', ' + d + ' ' + mnNames[mo-1] + ' ' + y
+    + ' &nbsp;(અંદર save: ' + y + '-' + String(mo).padStart(2,'0') + '-' + String(d).padStart(2,'0') + ')';
+}
+
+// ==================== UTILS ====================
+function toast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast ' + type, 2200);
+}
+function fdate(d){ if(!d) return ''; const [y,m,dd] = d.split('-'); return dd+'-'+m+'-'+y; }
+function mName(m){ return ['January','February','March','April','May','June','July','August','September','October','November','December'][m]; }
+function parseLocalDate(str){
+  if(!str) return null;
+  const parts = str.split('-');
+  if(parts.length !== 3) return new Date(str);
+  return new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+}
+
+function showTab(name, ev){
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(ev) ev.target.classList.add('active');
+  if(name==='dashboard') renderDashboard();
+  if(name==='reports') renderReport();
+  if(name==='checker') runChecker();
+  if(name==='settings') renderDataStats();
+}
+
+// ==================== PATIENTS ====================
+function addPatient(e){
+  e.preventDefault();
+  const id = document.getElementById('pId').value.trim();
+  if(DB.findPatient(id)){ toast('❌ આ ID પહેલેથી છે!','error'); return; }
+  const isoDate = parseDateDDMMYYYY(document.getElementById('pDate').value);
+  if(!isoDate){ toast('❌ Date ખોટી છે! DD-MM-YYYY માં લખો','error'); return; }
+  DB.patients.push({
+    id:id, name:document.getElementById('pName').value.trim(),
+    status:document.getElementById('pStatus').value,
+    age:document.getElementById('pAge').value,
+    sex:document.getElementById('pSex').value,
+    disease:document.getElementById('pDisease').value,
+    date:isoDate,
+    created:new Date().toISOString()
+  });
+  DB.save(); toast('✅ Patient saved!');
+  resetPatientForm(); refreshAll();
+}
+function resetPatientForm(){
+  document.getElementById('patientForm').reset();
+  document.getElementById('pId').value = DB.nextPid();
+  document.getElementById('pDate').value = todayDDMMYYYY();
+  showDatePreview('pDate','pDatePreview');
+}
+function deletePatient(id){
+  if(!confirm('આ patient + તેના બધા visits delete થશે. ચાલુ?')) return;
+  DB.patients = DB.patients.filter(p => String(p.id) !== String(id));
+  DB.visits = DB.visits.filter(v => String(v.pid) !== String(id));
+  DB.save(); refreshAll(); toast('🗑️ Deleted');
+}
+function renderPatients(){
+  const q = (document.getElementById('patientSearch').value||'').toLowerCase();
+  let list = DB.patients.slice().reverse();
+  if(q) list = list.filter(p =>
+    p.name.toLowerCase().includes(q) || String(p.id).includes(q) || p.disease.toLowerCase().includes(q));
+  const tb = document.getElementById('patientTbody');
+  if(!list.length) tb.innerHTML = '<tr><td colspan="8" class="empty">કોઈ patient નથી</td></tr>';
+  else tb.innerHTML = list.map(p => `
+    <tr>
+      <td><strong>${p.id}</strong></td><td>${p.name}</td>
+      <td><span class="badge badge-${p.status.toLowerCase()}">${p.status}</span></td>
+      <td>${p.age}</td><td>${p.sex}</td><td>${p.disease}</td>
+      <td>${fdate(p.date)}</td>
+      <td>
+        <button class="btn btn-warning btn-sm" onclick="editPatient('${p.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePatient('${p.id}')">🗑️</button>
+      </td>
+    </tr>`).join('');
+  document.getElementById('patientCount').textContent = DB.patients.length;
+}
+function renderPatientIds(){
+  document.getElementById('patientIds').innerHTML = DB.patients.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+// ==================== EDIT ====================
+function editPatient(id){
+  const p = DB.findPatient(id); if(!p) return;
+  document.getElementById('editTitle').textContent = 'Edit Patient #' + id;
+  document.getElementById('editId').value = id;
+  document.getElementById('editType').value = 'patient';
+  ['editNameGroup','editStatusGroup','editAgeGroup','editSexGroup','editDiseaseGroup'].forEach(x => document.getElementById(x).style.display='block');
+  document.getElementById('editName').value = p.name;
+  document.getElementById('editStatus').value = p.status;
+  document.getElementById('editAge').value = p.age;
+  document.getElementById('editSex').value = p.sex;
+  document.getElementById('editDisease').value = p.disease;
+  document.getElementById('editDate').value = toDDMMYYYY(p.date);
+  showDatePreview('editDate','editDatePreview');
+  document.getElementById('editModal').classList.add('show');
+}
+function editVisit(id){
+  const v = DB.visits.find(x => x.id === id); if(!v) return;
+  document.getElementById('editTitle').textContent = 'Edit Visit #' + id;
+  document.getElementById('editId').value = id;
+  document.getElementById('editType').value = 'visit';
+  ['editNameGroup','editStatusGroup','editAgeGroup','editSexGroup','editDiseaseGroup'].forEach(x => document.getElementById(x).style.display='none');
+  document.getElementById('editDate').value = toDDMMYYYY(v.date);
+  showDatePreview('editDate','editDatePreview');
+  document.getElementById('editModal').classList.add('show');
+}
+function closeModal(){ document.getElementById('editModal').classList.remove('show'); }
+function saveEdit(e){
+  e.preventDefault();
+  const type = document.getElementById('editType').value;
+  const id = document.getElementById('editId').value;
+  const isoDate = parseDateDDMMYYYY(document.getElementById('editDate').value);
+  if(!isoDate){ toast('❌ Date ખોટી છે! DD-MM-YYYY માં લખો','error'); return; }
+  if(type === 'patient'){
+    const p = DB.findPatient(id);
+    if(p){
+      p.name = document.getElementById('editName').value;
+      p.status = document.getElementById('editStatus').value;
+      p.age = document.getElementById('editAge').value;
+      p.sex = document.getElementById('editSex').value;
+      p.disease = document.getElementById('editDisease').value;
+      p.date = isoDate;
+    }
+  } else {
+    const v = DB.visits.find(x => x.id == id);
+    if(v) v.date = isoDate;
+  }
+  DB.save(); closeModal(); refreshAll(); toast('✅ Updated!');
+}
+
+// ==================== VISITS ====================
+function addVisit(e){
+  e.preventDefault();
+  const pid = document.getElementById('vPid').value.trim();
+  const patient = DB.findPatient(pid);
+  if(!patient){ toast('❌ Patient ID મળી નથી!','error'); return; }
+  const isoDate = parseDateDDMMYYYY(document.getElementById('vDate').value);
+  if(!isoDate){ toast('❌ Visit Date ખોટી છે! DD-MM-YYYY માં લખો','error'); return; }
+  if(isoDate < patient.date){ toast('⚠️ Visit date, Start Date પહેલા છે!','error'); return; }
+  DB.visits.push({ id:DB.nextVid(), pid:pid, date:isoDate, created:new Date().toISOString() });
+  DB.save(); toast('✅ Visit saved!');
+  document.getElementById('visitForm').reset();
+  document.getElementById('vDate').value = todayDDMMYYYY();
+  document.getElementById('vName').value = '';
+  showDatePreview('vDate','vDatePreview');
+  refreshAll();
+}
+document.getElementById('vPid').addEventListener('input', function(){
+  const p = DB.findPatient(this.value.trim());
+  document.getElementById('vName').value = p ? p.name : '';
+});
+function deleteVisit(id){
+  if(!confirm('આ visit delete કરવી?')) return;
+  DB.visits = DB.visits.filter(v => v.id !== id);
+  DB.save(); refreshAll(); toast('🗑️ Deleted');
+}
+function renderVisits(){
+  const q = (document.getElementById('visitSearch').value||'').toLowerCase();
+  let list = DB.visits.slice().reverse();
+  if(q) list = list.filter(v => {
+    const p = DB.findPatient(v.pid);
+    return String(v.pid).includes(q) || (p && p.name.toLowerCase().includes(q));
+  });
+  const tb = document.getElementById('visitTbody');
+  if(!list.length) tb.innerHTML = '<tr><td colspan="7" class="empty">કોઈ visit નથી</td></tr>';
+  else tb.innerHTML = list.map(v => {
+    const p = DB.findPatient(v.pid) || {};
+    return `<tr>
+      <td>${v.id}</td><td>${fdate(v.date)}</td><td><strong>${v.pid}</strong></td>
+      <td>${p.name||'-'}</td><td>${p.disease||'-'}</td>
+      <td><span class="badge badge-old">Old</span></td>
+      <td>
+        <button class="btn btn-warning btn-sm" onclick="editVisit(${v.id})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteVisit(${v.id})">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('visitCount').textContent = DB.visits.length;
+}
+
+// ==================== REPORT ====================
+function getMonthData(year, month){
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month+1, 1);
+  const r = {
+    HTN:{New:{M:0,F:0},Old:{M:0,F:0}},
+    DM:{New:{M:0,F:0},Old:{M:0,F:0}},
+    Both:{New:{M:0,F:0},Old:{M:0,F:0}}
+  };
+  DB.patients.forEach(p => {
+    const d = parseLocalDate(p.date);
+    if(d && d >= start && d < end){
+      if(r[p.disease] && r[p.disease][p.status]) r[p.disease][p.status][p.sex]++;
+    }
+  });
+  DB.visits.forEach(v => {
+    const vd = parseLocalDate(v.date);
+    if(vd && vd >= start && vd < end){
+      const p = DB.findPatient(v.pid);
+      if(!p) return;
+      const pd = parseLocalDate(p.date);
+      if(pd && pd < start){
+        if(r[p.disease]) r[p.disease].Old[p.sex]++;
+      }
+    }
+  });
+  return r;
+}
+
+function renderReport(){
+  const month = parseInt(document.getElementById('rMonth').value);
+  const year = parseInt(document.getElementById('rYear').value);
+  if(isNaN(month) || isNaN(year)) return;
+  const data = getMonthData(year, month);
+  let html = `<h3 style="margin-bottom:10px;color:#1e40af;font-size:15px">${mName(month)} ${year} — Summary Report</h3>`;
+  html += `<div class="table-wrap"><table class="summary-table">
+    <thead><tr><th rowspan="2">Status</th>
+      <th colspan="2" class="header-group">HTN</th>
+      <th colspan="2" class="header-group">DM</th>
+      <th colspan="2" class="header-group">Both</th>
+      <th rowspan="2">Total</th></tr>
+    <tr><th class="header-sub">M</th><th class="header-sub">F</th>
+      <th class="header-sub">M</th><th class="header-sub">F</th>
+      <th class="header-sub">M</th><th class="header-sub">F</th></tr></thead><tbody>`;
+  let T = {HTN:{M:0,F:0},DM:{M:0,F:0},Both:{M:0,F:0}};
+  ['New','Old'].forEach(st => {
+    const hM=data.HTN[st].M, hF=data.HTN[st].F;
+    const dM=data.DM[st].M, dF=data.DM[st].F;
+    const bM=data.Both[st].M, bF=data.Both[st].F;
+    const tot=hM+hF+dM+dF+bM+bF;
+    T.HTN.M+=hM;T.HTN.F+=hF;T.DM.M+=dM;T.DM.F+=dF;T.Both.M+=bM;T.Both.F+=bF;
+    html += `<tr><td><span class="badge badge-${st.toLowerCase()}">${st}</span></td>
+      <td>${hM}</td><td>${hF}</td><td>${dM}</td><td>${dF}</td><td>${bM}</td><td>${bF}</td>
+      <td><strong>${tot}</strong></td></tr>`;
+  });
+  const th=T.HTN.M+T.HTN.F, td=T.DM.M+T.DM.F, tb=T.Both.M+T.Both.F, grand=th+td+tb;
+  html += `<tr style="background:#f1f5f9;font-weight:700"><td>Total</td>
+    <td>${T.HTN.M}</td><td>${T.HTN.F}</td><td>${T.DM.M}</td><td>${T.DM.F}</td>
+    <td>${T.Both.M}</td><td>${T.Both.F}</td><td>${grand}</td></tr></tbody></table></div>`;
+  const male=T.HTN.M+T.DM.M+T.Both.M, female=T.HTN.F+T.DM.F+T.Both.F;
+  html += `
+  <div class="side-tables">
+    <table><tbody>
+        <tr><td>Male</td><td class="val">${male}</td></tr>
+        <tr><td>Female</td><td class="val">${female}</td></tr>
+        <tr class="highlight"><td>Grand Total</td><td class="val">${grand}</td></tr>
+      </tbody></table>
+    <table><tbody>
+        <tr><td>HTN</td><td class="val">${th}</td></tr>
+        <tr><td>DM</td><td class="val">${td}</td></tr>
+        <tr><td>BOTH</td><td class="val">${tb}</td></tr>
+        <tr class="highlight"><td>TOTAL</td><td class="val">${grand}</td></tr>
+      </tbody></table>
+  </div>`;
+  document.getElementById('reportArea').innerHTML = html;
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard(){
+  const tp=DB.patients.length, tv=DB.visits.length;
+  const today = new Date().toISOString().split('T')[0];
+  const tV = DB.visits.filter(v => v.date===today).length;
+  const ms = new Date(); ms.setDate(1);
+  const tmP = DB.patients.filter(p => parseLocalDate(p.date) >= ms).length;
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat"><div class="num">${tp}</div><div class="lbl">Total Patients</div></div>
+    <div class="stat green"><div class="num">${tv}</div><div class="lbl">Total Visits</div></div>
+    <div class="stat orange"><div class="num">${tV}</div><div class="lbl">Today Visits</div></div>
+    <div class="stat purple"><div class="num">${tmP}</div><div class="lbl">This Month New</div></div>`;
+  const now = new Date();
+  const d = getMonthData(now.getFullYear(), now.getMonth());
+  let html = `<p style="font-size:12px;color:#64748b;margin-bottom:8px">${mName(now.getMonth())} ${now.getFullYear()}</p><div class="stat-grid">
+    <div class="stat"><div class="num">${d.HTN.New.M+d.HTN.New.F}</div><div class="lbl">HTN New</div></div>
+    <div class="stat"><div class="num">${d.HTN.Old.M+d.HTN.Old.F}</div><div class="lbl">HTN Old</div></div>
+    <div class="stat"><div class="num">${d.DM.New.M+d.DM.New.F}</div><div class="lbl">DM New</div></div>
+    <div class="stat"><div class="num">${d.DM.Old.M+d.DM.Old.F}</div><div class="lbl">DM Old</div></div>
+    <div class="stat"><div class="num">${d.Both.New.M+d.Both.New.F}</div><div class="lbl">Both New</div></div>
+    <div class="stat"><div class="num">${d.Both.Old.M+d.Both.Old.F}</div><div class="lbl">Both Old</div></div>
+  </div>`;
+  document.getElementById('dashSummary').innerHTML = html;
+  const rec = DB.visits.slice().reverse().slice(0,5);
+  if(!rec.length) document.getElementById('recentVisits').innerHTML = '<p class="empty">કોઈ visit નથી</p>';
+  else document.getElementById('recentVisits').innerHTML = '<div class="table-wrap"><table><thead><tr><th>Date</th><th>Patient</th><th>Disease</th></tr></thead><tbody>' +
+    rec.map(v => { const p = DB.findPatient(v.pid)||{}; return `<tr><td>${fdate(v.date)}</td><td>${p.name||v.pid}</td><td>${p.disease||'-'}</td></tr>`; }).join('') +
+    '</tbody></table></div>';
+}
+
+// ==================== CHECKER ====================
+function runChecker(){
+  const m = parseInt(document.getElementById('cMonth').value);
+  const y = parseInt(document.getElementById('cYear').value);
+  if(isNaN(m) || isNaN(y)) return;
+  const start = new Date(y, m, 1);
+  const end = new Date(y, m+1, 1);
+  let html = '';
+  const pmNew = DB.patients.filter(p => { const d=parseLocalDate(p.date); return d>=start && d<end && p.status==='New'; });
+  const pmOld = DB.patients.filter(p => { const d=parseLocalDate(p.date); return d>=start && d<end && p.status==='Old'; });
+  const visitsInMonth = DB.visits.filter(v => { const d=parseLocalDate(v.date); return d>=start && d<end; });
+  html += `<div class="check-row ok">✅ <strong>${pmNew.length}</strong> New patients ${mName(m)} ${y} માં register થયા</div>`;
+  html += `<div class="check-row ok">✅ <strong>${pmOld.length}</strong> Old patients ${mName(m)} ${y} માં register થયા</div>`;
+  html += `<div class="check-row ok">✅ <strong>${visitsInMonth.length}</strong> visits ${mName(m)} માં થયા</div>`;
+  const suspicious = [];
+  visitsInMonth.forEach(v => {
+    const p = DB.findPatient(v.pid); if(!p) return;
+    const pd = parseLocalDate(p.date);
+    if(pd >= start && pd < end) suspicious.push({patient:p, visit:v});
+  });
+  if(suspicious.length > 0){
+    html += `<div class="check-row warn">⚠️ <strong>${suspicious.length}</strong> patients જે ${mName(m)} માં register થયા અને એ જ મહિને visit પણ કર્યા</div>`;
+    html += `<div style="margin-top:10px"><strong style="font-size:13px">શંકાસ્પદ patients:</strong></div>`;
+    html += '<div class="table-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Register Date</th><th>Visit Date</th><th>Status</th></tr></thead><tbody>';
+    suspicious.forEach(s => {
+      html += `<tr><td><strong>${s.patient.id}</strong></td><td>${s.patient.name}</td>
+        <td>${fdate(s.patient.date)}</td><td>${fdate(s.visit.date)}</td>
+        <td><span class="badge badge-${s.patient.status.toLowerCase()}">${s.patient.status}</span></td></tr>`;
+    });
+    html += '</tbody></table></div>';
+    html += `<p class="hint">💡 <strong>શું કરવું:</strong> આ patients નો status અને dates ચકાસો. જો patient ${mName(m)} નો New હોય તો Visit Entry ને "Old" ન ગણવો — એ નવી app માં automatic થાય છે (double counting નહીં).</p>`;
+  } else {
+    html += `<div class="check-row ok">✅ <strong>કોઈ શંકાસ્પદ entry મળી નથી</strong> — બધું બરાબર છે!</div>`;
+  }
+  const data = getMonthData(y, m);
+  html += `<div style="margin-top:14px;padding:10px;background:#f0f9ff;border-radius:8px"><strong style="font-size:13px;color:#0369a1">📊 ${mName(m)} ${y} — સાચો Summary (આ app પ્રમાણે):</strong>`;
+  html += `<div class="table-wrap" style="margin-top:8px"><table class="summary-table">
+    <thead><tr><th>Status</th><th>HTN M</th><th>HTN F</th><th>DM M</th><th>DM F</th><th>Both M</th><th>Both F</th></tr></thead><tbody>`;
+  ['New','Old'].forEach(st => {
+    html += `<tr><td><span class="badge badge-${st.toLowerCase()}">${st}</span></td>
+      <td>${data.HTN[st].M}</td><td>${data.HTN[st].F}</td>
+      <td>${data.DM[st].M}</td><td>${data.DM[st].F}</td>
+      <td>${data.Both[st].M}</td><td>${data.Both[st].F}</td></tr>`;
+  });
+  html += '</tbody></table></div></div>';
+  document.getElementById('checkerArea').innerHTML = html;
+}
+
+// ==================== EXPORT / IMPORT ====================
+function exportJSON(){
+  const blob = new Blob([JSON.stringify({patients:DB.patients, visits:DB.visits, exported:new Date().toISOString()},null,2)],{type:'application/json'});
+  dl(blob, 'NCD_Backup_'+new Date().toISOString().split('T')[0]+'.json');
+  toast('✅ Backup downloaded!');
+}
+function importJSON(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try{
+      const d = JSON.parse(ev.target.result);
+      if(!d.patients || !d.visits) throw new Error('Invalid');
+      if(!confirm('હાલનો data replace થશે. ચાલુ?')) return;
+      DB.patients = d.patients; DB.visits = d.visits; DB.save();
+      refreshAll(); toast('✅ Restore success!');
+    }catch(err){ toast('❌ Invalid file!','error'); }
+  };
+  r.readAsText(f);
+}
+function exportCSV(){
+  const m = parseInt(document.getElementById('rMonth').value);
+  const y = parseInt(document.getElementById('rYear').value);
+  const data = getMonthData(y, m);
+  let csv = `NCD Summary - ${mName(m)} ${y}\n\nStatus,HTN_M,HTN_F,DM_M,DM_F,Both_M,Both_F,Total\n`;
+  ['New','Old'].forEach(st => {
+    const hM=data.HTN[st].M, hF=data.HTN[st].F;
+    const dM=data.DM[st].M, dF=data.DM[st].F;
+    const bM=data.Both[st].M, bF=data.Both[st].F;
+    csv += `${st},${hM},${hF},${dM},${dF},${bM},${bF},${hM+hF+dM+dF+bM+bF}\n`;
+  });
+  const blob = new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  dl(blob, `NCD_Summary_${mName(m)}_${y}.csv`);
+  toast('✅ Excel downloaded!');
+}
+function exportAllCSV(){
+  let csv = 'PATIENT MASTER\nID,Name,Status,Age,Sex,Disease,Date(DD-MM-YYYY)\n';
+  DB.patients.forEach(p => csv += `${p.id},"${p.name}",${p.status},${p.age},${p.sex},${p.disease},${fdate(p.date)}\n`);
+  csv += '\nVISIT ENTRY\nID,Patient ID,Visit Date(DD-MM-YYYY)\n';
+  DB.visits.forEach(v => csv += `${v.id},${v.pid},${fdate(v.date)}\n`);
+  const blob = new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  dl(blob, `NCD_Full_${new Date().toISOString().split('T')[0]}.csv`);
+  toast('✅ Full data exported!');
+}
+function dl(blob, name){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+}
+function clearAll(){
+  if(!confirm('⚠️ બધો data DELETE થશે!')) return;
+  if(!confirm('ખરેખર? પાછું નહીં આવે!')) return;
+  DB.patients = []; DB.visits = []; DB.save();
+  refreshAll(); toast('🗑️ Cleared');
+}
+function renderDataStats(){
+  const size = (JSON.stringify(DB.patients).length + JSON.stringify(DB.visits).length) / 1024;
+  document.getElementById('dataStats').innerHTML = `
+    <p style="font-size:13px;line-height:2">
+      👥 Total Patients: <strong>${DB.patients.length}</strong><br>
+      🩺 Total Visits: <strong>${DB.visits.length}</strong><br>
+      💾 Storage: <strong>~${size.toFixed(1)} KB</strong>
+    </p>`;
+}
+
+// ==================== INIT ====================
+function refreshAll(){
+  renderPatients(); renderVisits(); renderDashboard(); renderPatientIds();
+  if(document.getElementById('tab-reports').classList.contains('active')) renderReport();
+  if(document.getElementById('tab-checker').classList.contains('active')) runChecker();
+  if(document.getElementById('tab-settings').classList.contains('active')) renderDataStats();
+}
+
+function init(){
+  DB.load();
+  const now = new Date();
+  ['rMonth','cMonth'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '';
+    for(let i=0;i<12;i++){
+      const o = document.createElement('option');
+      o.value = i; o.textContent = mName(i);
+      sel.appendChild(o);
+    }
+    sel.value = now.getMonth();
+  });
+  document.getElementById('rYear').value = now.getFullYear();
+  document.getElementById('cYear').value = now.getFullYear();
+  document.getElementById('pId').value = DB.nextPid();
+  document.getElementById('pDate').value = todayDDMMYYYY();
+  document.getElementById('vDate').value = todayDDMMYYYY();
+  
+  setupDateInput('pDate','pDatePreview');
+  setupDateInput('vDate','vDatePreview');
+  setupDateInput('editDate','editDatePreview');
+  
+  refreshAll();
+  renderReport();
+}
+
+init();
+</script>
+</body>
+</html>
